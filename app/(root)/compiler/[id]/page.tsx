@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import CodeEditor from "@/components/code-editor";
 import { Button } from "@/components/ui/button";
-import { Save, Share2 } from "lucide-react";
+import { Code, Copy, Save, Share2 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   CompilerInitialStateType,
@@ -25,10 +25,18 @@ import {
 } from "@/lib/redux/compilerSlice";
 import RenderCode from "@/components/render-code";
 import { getCodeByCompilerId, saveCode } from "@/actions/crudEditor";
-import { toast, useToast } from "@/components/ui/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 const CompilerPage = ({ params }: { params: { id: string } }) => {
-  const { toast } = useToast();
   const dispatch = useDispatch();
   const defaultLanguage = useSelector(
     (state: any) => state.compiler.currentLanguage
@@ -60,11 +68,15 @@ const CompilerPage = ({ params }: { params: { id: string } }) => {
         id: params.id,
       });
       if (!result) return null;
-      toast({ variant: "default", title: result && result.message });
+      toast(result && result.message);
     } catch (error: any) {
       console.log(error);
-      toast({ variant: "destructive", title: error });
+      toast(error);
     }
+  };
+  const handleCopy = () => {
+    window.navigator.clipboard.writeText(window.location.href);
+    toast("URL copied to clipboard");
   };
   return (
     <ResizablePanelGroup
@@ -78,10 +90,39 @@ const CompilerPage = ({ params }: { params: { id: string } }) => {
               <Save className="size-4" />
               Save
             </Button>
-            <Button className="bg-emerald-500 hover:bg-emerald-600 gap-x-2">
-              <Share2 className="size-4" />
-              Share
-            </Button>
+            <Dialog>
+              <DialogTrigger className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-md">
+                <Share2 className="size-4" />
+                Share
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-4">
+                    <Code /> Share your code 😎
+                  </DialogTitle>
+                  <DialogDescription>
+                    <div className="w-full flex items-center gap-3">
+                      <Input
+                        disabled
+                        type="text"
+                        value={global?.window?.location.href}
+                        className="w-full px-4 py-2 rounded-md bg-accent"
+                      />
+                      <Button
+                        className="bg-emerald-500 hover:bg-emerald-600 text-white"
+                        variant="outline"
+                        onClick={handleCopy}
+                      >
+                        <Copy size={15} /> &nbsp; Copy URL
+                      </Button>
+                    </div>
+                    <span className="text-xs text-emerald-500 font-semibold">
+                      Share this URL with your friend s to collaborate
+                    </span>
+                  </DialogDescription>
+                </DialogHeader>
+              </DialogContent>
+            </Dialog>
           </div>
           <div className="flex items-center gap-x-2">
             <label className="hidden lg:flex text-xs font-semibold">

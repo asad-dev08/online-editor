@@ -6,18 +6,34 @@ import Code from "@/lib/models/code";
 export const saveCode = async (data: any) => {
   try {
     await connectMongo();
-    console.log("data: ", data);
-    const savedCode = await Code.create({
-      fullCode: data.fullCode!,
-      compilerId: data.id!,
-    });
-    console.log(savedCode);
-    if (savedCode) {
-      return {
-        status: 200,
-        message: "Code saved successfully",
-        data: savedCode,
-      };
+    const code = await Code.findOne({ compilerId: data.id });
+    if (!code) {
+      const savedCode = await Code.create({
+        fullCode: data.fullCode!,
+        compilerId: data.id!,
+      });
+      if (savedCode) {
+        return {
+          status: 200,
+          message: "Code saved successfully",
+          data: savedCode,
+        };
+      }
+    } else {
+      const savedCode = await Code.updateOne(
+        { _id: code._id },
+        {
+          fullCode: data.fullCode!,
+          compilerId: data.id!,
+        }
+      );
+      if (savedCode) {
+        return {
+          status: 200,
+          message: "Code updated successfully",
+          data: savedCode,
+        };
+      }
     }
     return null;
   } catch (error) {
@@ -30,6 +46,7 @@ export const getCodeByCompilerId = async (id: string) => {
   try {
     await connectMongo();
     const code = await Code.findOne({ compilerId: id });
+    console.log(code);
     if (code) {
       return {
         status: 200,
